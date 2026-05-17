@@ -1,0 +1,607 @@
+<!-- 뷰어 스타일 (CSS) -->
+<style>
+  :root {
+    /* ★ [화면 비율 설정] */
+    --book-ratio: 1 / 1.414; /* 1/1.414: A4, B5 등 용지 비율(금강비)의 근사치 */
+  }
+  
+  /* ★ [웹폰트 불러오기] */
+  @import url('https://fonts.googleapis.com/css2?family==Noto+Serif+KR&family=Noto+Serif+JP&display=swap');
+
+  /* 전체화면 시 가로로 늘어나지 않고, 중앙에서 고유 비율을 유지 */
+  .all-viewer-wrapper:fullscreen {
+    width: 100vw !important;
+    max-width: none !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: #121212; /* 주변 영역은 어둡게 암전 처리 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* 전체화면일 때 내부 뷰어 몸통이 화면 높이에 맞춰 비율을 유지하도록 고정 */
+  .all-viewer-wrapper:fullscreen .viewer-body {
+    width: 100% !important; /* 모바일 대응: 가로를 꽉 채우고 */
+    height: auto !important;
+    aspect-ratio: var(--book-ratio) !important; /* 설정한 도서 비율을 무조건 유지 */
+    max-width: calc((100vh - 120px) * (1 / 1.414)) !important; /* PC 화면에서 위아래가 삐져나가는 것 방지 */
+    box-shadow: 0 0 20px rgba(0,0,0,0.6);
+  }
+  
+  /* 전체화면 시 상하단 바 스타일 유지 및 너비 제한 */
+  .all-viewer-wrapper:fullscreen .viewer-header,
+  .all-viewer-wrapper:fullscreen .viewer-footer {
+    width: 100%;
+    max-width: 700px;
+    background: #1a1a1a;
+    border-color: #333;
+    color: #ccc;
+  }
+  .all-viewer-wrapper:fullscreen .page-info { color: #fff; }
+  .all-viewer-wrapper:fullscreen .viewer-btn {
+    background: #2a2a2a;
+    border-color: #444;
+    color: #fff;
+  }
+  .all-viewer-wrapper:fullscreen .viewer-btn:hover:not(:disabled) { background: #3a3a3a; }
+  .all-viewer-wrapper:fullscreen .viewer-btn:disabled { background: #222; color: #555; }
+
+  /* 전체화면일 때 우측 하단 아이콘 버튼의 글자색을 흰색으로 강제 변경하여 SVG 선이 흰색이 되도록 함 */
+  .all-viewer-wrapper:fullscreen .fullscreen-icon-btn {
+    color: #ffffff !important;
+  }
+
+  /* 일반 모드 스타일 */
+  .all-viewer-wrapper {
+    width: 100%;
+    max-width: 700px;
+    margin: 20px auto;
+    font-family: 'Noto Serif KR', 'Noto Serif JP', serif; /* ★ [이곳에 폰트 입력] */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fdfdfd;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+  }
+  
+  .viewer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: #f4f4f4;
+    border-bottom: 1px solid #ddd;
+    user-select: none;
+  }
+  
+  .viewer-body {
+    position: relative;
+    width: 100%;
+    aspect-ratio: var(--book-ratio);
+    background: #fff;
+    overflow: hidden;
+  }
+  .viewer-body.comic-mode {
+    background: #121212;
+  }
+
+  .viewer-slider {
+    display: flex;
+    height: 100%;
+    transition: transform 0.3s ease-out;
+  }
+
+  /* 본문 레이아웃 */
+  .viewer-block.type-text {
+    flex: 0 0 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 40px 35px;
+    column-fill: auto;
+    
+    font-size: 16px;
+    line-height: 1.8;
+    color: #2b2b2b;
+    text-align: justify;
+    word-break: break-all; 
+    overflow-wrap: anywhere;
+    
+    overflow: hidden;
+    display: block;
+  }
+  
+  .viewer-block.type-text p {
+    margin: 0 !important;
+    padding-bottom: 0.8em;
+    white-space: pre-wrap;
+  }
+  .viewer-block.type-text p:last-child { padding-bottom: 0 !important; }
+
+  /* 전체화면 삽화 레이아웃 */
+  .viewer-block.type-image {
+    flex: 0 0 100%;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #fff;
+  }
+  .img-full {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* 하단 컨트롤 영역 */
+  .viewer-footer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    background: #f4f4f4;
+    border-top: 1px solid #ddd;
+    user-select: none;
+  }
+  
+  .footer-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+  }
+
+  .page-scrubber {
+    width: 80%;
+    max-width: 400px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: #555;
+  }
+
+  .viewer-btn {
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    background: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .viewer-btn:hover:not(:disabled) { background: #e8e8e8; }
+  .viewer-btn:disabled { opacity: 0.4; cursor: not-allowed; background: #eee; }
+  
+  .page-info { font-weight: bold; color: #444; }
+
+  /* 오른쪽 아래 구석에 배치할 아이콘 버튼 스타일 */
+  .fullscreen-icon-btn {
+    position: absolute;
+    right: 15px;
+    bottom: 12px;
+    padding: 6px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #444; /* 기본 모드에서는 어두운 회색 선 */
+  }
+  .fullscreen-icon-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+  }
+  .all-viewer-wrapper:fullscreen .fullscreen-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  .fullscreen-icon-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor; /* 부모인 .fullscreen-icon-btn의 글자색을 그대로 복사 */
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+</style>
+
+<!-- 뷰어 레이아웃 -->
+<div class="all-viewer-wrapper" id="viewerWrapper">
+  <div class="viewer-header">
+    <div>
+      <button class="viewer-btn" id="btnZoomIn" onclick="changeZoom(2)">가+</button>
+      <button class="viewer-btn" id="btnZoomOut" onclick="changeZoom(-2)">가-</button>
+      <span id="fontSizeNum" style="font-size: 13px; color: #666; margin: 0 4px; font-weight: bold;">16px</span>
+    </div>
+    <div class="page-info"><span id="pageNum">1</span> / <span id="totalPage">?</span></div>
+  </div>
+
+  <div class="viewer-body" id="viewerBody">
+    <div class="viewer-slider" id="viewerSlider"></div>
+  </div>
+
+  <div class="viewer-footer">
+    <input type="range" class="page-scrubber" id="pageSlider" min="1" max="1" value="1" oninput="jumpToPage(this.value - 1)">
+    
+    <div class="footer-buttons">
+      <button class="viewer-btn" id="btnPrev" onclick="changePage(-1)">◀ 이전</button>
+      <button class="viewer-btn" id="btnNext" onclick="changePage(1)">다음 ▶</button>
+    </div>
+
+    <!-- 우측 하단 구석에 배치된 사각형 모양 SVG 아이콘 -->
+    <button class="fullscreen-icon-btn" id="btnFullscreen" onclick="toggleFullscreen()" title="전체화면 토글">
+      <svg id="fullscreenIcon" viewBox="0 0 24 24">
+        <!-- 기본상태: 바깥으로 뻗어나가는 일반적인 전체화면 대괄호 아이콘 -->
+        <path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3" />
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- 뷰어 코어 엔진 스크립트 -->
+<script>
+  /* =======================================================
+     ★ [본문 입력 구역] COMIC / TEXT / MIXED
+     ======================================================= */
+  const BOOK_MODE = "MIXED"; 
+
+  const BOOK_DATA = {
+    comic: [
+      "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png",
+      "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png"
+    ],
+    text: [
+      `텍스트를 입력하는 곳입니다.`,
+      `<newpage>`,
+      `텍스트를 입력하는 곳입니다.`
+    ],
+    mixed: [
+      {type: "text", value: `ㅁ한자8(★)로 \"이곳의 데이터를 수정하세요\"를 표시하고 있습니다. 비율, 폰트, 본문 세 종류입니다.
+비율과 폰트는 따로 설명하지 않겠습니다. 이하, 본문의 입력만을 소개합니다.
+
+const BOOK_MODE = \"이곳에 모드 입력\";
+이곳에서 모드를 입력해야 합니다.
+COMIC / TEXT / MIXED
+세 종류가 존재합니다.
+ - COMIC: 만화용, 텍스트가 존재하지 않기 때문에 글자 크기 버튼이 숨겨집니다.
+ - TEXT: 삽화 없는 only 텍스트용. 소설에 추천입니다.
+ - MIXED: 이미지와 텍스트를 혼용하는 용도로, 줄글 사이에 삽화를 넣을 수 있습니다. 라이트노벨 느낌?
+
+그 밑에는
+const BOOK_DATA = { 이곳에 본문 입력 }
+가 있습니다.
+
+만화는
+comic: [
+  \"이곳에 이미지 주소 입력\",
+  \"이곳에 이미지 주소 입력\"
+]
+이러한 형식으로 작성하면 됩니다.
+
+텍스트는
+text: [
+  \`이곳에 텍스트 입력\`,
+  \"이곳에 텍스트 입력\"
+]
+이러한 형식으로 작성하면 됩니다.
+위엣 것(따옴표)은 백틱인 특성상 안에서 줄바꿈을 해도 줄바꿈이 적용됩니다.
+아랫 것(백틱)은 안에서 줄바꿈을 하려면 \\n 써야 합니다.
+그냥 줄바꿈으로는 문단 나눔 처리가 되지 않습니다. 따옴표나 백틱으로 감싸진 글은 전부 한 문단으로 처리가 됩니다.
+텍스트로 딱 \"&lt;newpage&gt;\"만 적으면 그 다음 문단은 새 페이지가 됩니다. 앞이나 뒤에 글자가 더 붙어 있다면 새 페이지로 넘어가지 않습니다.
+
+혼용은
+mixed: [
+  {type: "text", value: \`이곳에 텍스트 입력\`},
+  {type: "text", value: \"이곳에 텍스트 입력\"}
+]
+형식입니다.
+윗줄(백틱)은 앞서 말했듯 백틱인 특성상 \\n을 쓰지 않고 안에서 줄바꿈을 해도 줄바꿈이 적용됩니다.
+아랫줄(따옴표)는 내부에서 줄바꿈을 하려면 \\n을 입력해야 합니다.`},
+      {type: "image", value: "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png"},
+      {type: "text", value: `{type: \"image\", value: \"이곳에 이미지 주소 입력\"}
+위와 같이 type을 \"imgae\"로 지정한뒤 value에 이미지 주소를 적어서 이미지도 넣을 수 있습니다. 이미지를 문단 사이에 끼우는 건 안 되고, 이미지는 무조건 새 페이지예요.`},
+      {type: "text", value: `{type: \"text\", value: \"이곳에 텍스트 입력\"},\n{type: \"text\", value: \"이곳에 텍스트 입력\"}
+앞서 말한 텍스트와 같이, 이런 식으로 나누어서 문단을 나눌 수 있습니다.`},
+      {type: "text", value: `그러나 그냥 엔터 두번으로 나눠도 괜찮다고 생각합니다. 실제로 나뉘어지진 않고, 그냥 줄바꿈 두 번 한 거지만요.
+
+하지만 솔직히 이 편이 훨씬 쉽습니다. 그야…… 그렇겠죠?
+어쨌거나 보기에 나뉘어 졌으면 된 거 아닌가요?
+
+텍스트로 백틱이나 따옴표를 쓰고 싶다면 앞에 이스케이프 문자를 입력해서
+\\\` 혹은 \\\"
+식으로 입력하면 됩니다.
+
+html 문법의 사용은 권장하지 않습니다. (&lt;b&gt;볼드&lt;/b&gt; &lt;i&gt;이탤릭&lt;/i&gt; 등)
+그걸 고려하고 만들지는 않아서 말이죠……. 뭐 쓰든 말든 개인 자유긴 해요.
+참고로 html 문법을 쓸 수 있다는 건 부등호(&lt;&gt;)로 감싸진 말을 적으려건 &amp;lt;blah blah&amp;gt;로 적어야 한다는 뜻이기도 합니다.
+근데 부등호 잔뜩 나오는 글을 이런 뷰어 형식으로 쓸 일이 어딨겠어요. 소설이나 예쁘게 보여주라고 만든 뷰어인데.
+혹시 쓸 일 있다고 생각하셨나요? 거기엔 부등호가 아니라 홑화살괄호(〈〉)를 쓰셔야 합니다. ㄴ한자PgDn5 ㄴ한자PgDn6으로 쓰시면 됩니다.`},
+      {type: "newpage"},
+      {type: "text", value: `{type: \"newpage\"}
+이렇게 써서 강제로 페이지를 넘길 수 있습니다. 이것의 다음 문단이 뒷페이지가 됩니다.
+
+모두 마지막 컨텐츠(이미지, 텍스트)를 제외하면 끝에 쉼표를 붙이는 것이 필수입니다.
+
+참고로 이 뷰어는 방향키로 페이지 넘기기 지원합니다. 왼쪽화살표 오른쪽화살표.`}
+    ]
+  };
+
+  /* =======================================================
+     엔진 로직
+     ======================================================= */
+  let currentPage = 0;
+  let totalPages = 0;
+  let currentFontSize = 16;
+  let pageOffsets = []; 
+
+  const wrapperEl = document.getElementById("viewerWrapper");
+  const sliderEl = document.getElementById("viewerSlider");
+  const bodyEl = document.getElementById("viewerBody");
+  const fontSizeNumEl = document.getElementById("fontSizeNum");
+  const pageNumEl = document.getElementById("pageNum");
+  const totalPageEl = document.getElementById("totalPage");
+  const btnIn = document.getElementById("btnZoomIn");
+  const btnOut = document.getElementById("btnZoomOut");
+  const btnPrev = document.getElementById("btnPrev");
+  const btnNext = document.getElementById("btnNext");
+  const pageSlider = document.getElementById("pageSlider");
+  const fullscreenIcon = document.getElementById("fullscreenIcon");
+
+  // [전체화면] 및 [화면축소] SVG 패스
+  const ICON_FULLSCREEN = `<path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3" />`;
+  const ICON_MINIMIZE   = `<path d="m 4,16 h 4 v 4 m 12,-4 h -4 v 4 M 4,8 H 8 V 4 M 20,8 H 16 V 4" />`;
+
+  function buildBook() {
+    sliderEl.innerHTML = "";
+    
+    if (BOOK_MODE === "COMIC") {
+      btnIn.style.display = "none";
+      btnOut.style.display = "none";
+      fontSizeNumEl.style.display = "none";
+
+      renderBook(
+        BOOK_DATA.comic.map(img => ({ type: "image", value: img })),
+        "COMIC"
+      );
+
+    } else if (BOOK_MODE === "TEXT") {
+      const data = [];
+      
+      BOOK_DATA.text.forEach(t => {
+        if (t.trim() === "<newpage>") {
+          data.push({ type: "newpage" });
+        } else {
+          data.push({ type: "text", value: t });
+        }
+      });
+
+      renderBook(data, "TEXT");
+    } else if (BOOK_MODE === "MIXED") {
+      renderBook(BOOK_DATA.mixed, "MIXED");
+    }
+
+    waitImagesLoad();
+  }
+
+  function renderBook(data, mode) {
+    sliderEl.innerHTML = "";
+
+    let currentTextBlock = null;
+
+    data.forEach(item => {
+      if (item.type === "newpage") {
+        currentTextBlock = null;
+        return;
+      }
+
+      if (item.type === "text") {
+        if (!currentTextBlock) {
+          currentTextBlock = document.createElement("div");
+          currentTextBlock.className = "viewer-block type-text";
+
+          if (mode === "COMIC") {
+            currentTextBlock.style.fontSize = "0px";
+          }
+
+          sliderEl.appendChild(currentTextBlock);
+        }
+
+        const p = document.createElement("p");
+
+        p.innerHTML = item.value.replace(/\n/g, "<br>");
+
+        currentTextBlock.appendChild(p);
+
+      } else if (item.type === "image") {
+        currentTextBlock = null;
+
+        const block = document.createElement("div");
+        block.className = "viewer-block type-image";
+        block.innerHTML = `<img src="${item.value}" class="img-full">`;
+
+        sliderEl.appendChild(block);
+      }
+    });
+  }
+
+  function waitImagesLoad() {
+    const imgs = sliderEl.querySelectorAll("img");
+    let loaded = 0;
+    if (imgs.length === 0) { calculateLayout(); return; }
+    
+    imgs.forEach(img => {
+      if (img.complete) {
+        loaded++;
+        if(loaded === imgs.length) calculateLayout();
+      } else {
+        img.addEventListener("load", () => { loaded++; if(loaded === imgs.length) calculateLayout(); });
+        img.addEventListener("error", () => { loaded++; if(loaded === imgs.length) calculateLayout(); });
+      }
+    });
+  }
+
+  function calculateLayout() {
+    const pageWidth = bodyEl.clientWidth;
+    const pageHeight = bodyEl.clientHeight;
+
+    if (!pageWidth || !pageHeight) return;
+
+    pageOffsets = [];
+    let currentX = 0;
+
+    const blocks = sliderEl.querySelectorAll(".viewer-block");
+
+    blocks.forEach(block => {
+      //이미지 블록
+      if (block.classList.contains("type-image")) {
+        block.style.width = pageWidth + "px";
+        block.style.minWidth = pageWidth + "px";
+        block.style.flex = `0 0 ${pageWidth}px`;
+
+        pageOffsets.push(currentX);
+        currentX += pageWidth;
+
+        return;
+      }
+
+      //텍스트 블록
+      if (block.classList.contains("type-text")) {
+        block.style.flex = "0 0 100%";
+        block.style.width = pageWidth + "px";
+        block.style.minWidth = pageWidth + "px";
+        block.style.maxWidth = pageWidth + "px";
+        
+        block.style.width = pageWidth + "px";
+        block.style.minWidth = pageWidth + "px";
+        block.style.height = pageHeight + "px";
+
+        block.style.columnWidth = (pageWidth - 70) + "px";
+        block.style.columnGap = "70px";
+
+        const columnWidth = pageWidth - 70;
+        const columnGap = 70;
+
+        block.style.columnWidth = columnWidth + "px";
+        block.style.columnGap = columnGap + "px";
+
+        void block.offsetHeight;
+
+        void block.offsetWidth;
+        const realWidth = block.scrollWidth;
+
+        const usableWidth = realWidth - columnGap;
+
+        const pages = Math.max(1, Math.ceil(usableWidth / (columnWidth + columnGap)));
+
+        const totalWidth = pages * pageWidth;
+
+        block.style.width = totalWidth + "px";
+        block.style.minWidth = totalWidth + "px";
+        block.style.flex = `0 0 ${totalWidth}px`;
+
+        for (let i = 0; i < pages; i++) {
+          pageOffsets.push(currentX + (i * pageWidth));
+        }
+
+        currentX += totalWidth;
+      }
+    });
+
+    //슬라이더 전체 폭
+    sliderEl.style.width = currentX + "px";
+
+    totalPages = pageOffsets.length;
+
+    pageSlider.max = totalPages;
+
+    if (currentPage >= totalPages) {
+      currentPage = totalPages - 1;
+    }
+
+    updateView();
+  }
+  
+  function updateView() {
+    if (pageOffsets.length === 0) return;
+    sliderEl.style.transform = `translateX(-${pageOffsets[currentPage]}px)`;
+    pageNumEl.innerText = currentPage + 1;
+    totalPageEl.innerText = totalPages;
+    pageSlider.value = currentPage + 1;
+
+    btnPrev.disabled = (currentPage === 0);
+    btnNext.disabled = (currentPage === totalPages - 1);
+  }
+
+  function changePage(dir) {
+    let nextPage = currentPage + dir;
+    if (nextPage >= 0 && nextPage < totalPages) {
+      currentPage = nextPage;
+      updateView();
+    }
+  }
+
+  function jumpToPage(pageIndex) {
+    if (pageIndex >= 0 && pageIndex < totalPages) {
+      currentPage = pageIndex;
+      updateView();
+    }
+  }
+
+  function changeZoom(amount) {
+    currentFontSize += amount;
+    if (currentFontSize < 12) currentFontSize = 12;
+    if (currentFontSize > 26) currentFontSize = 26;
+    
+    sliderEl.querySelectorAll(".viewer-block.type-text").forEach(b => {
+      b.style.fontSize = currentFontSize + "px";
+    });
+    
+    if (fontSizeNumEl) fontSizeNumEl.innerText = currentFontSize + "px";
+    
+    calculateLayout();
+  }
+
+  /* 전체화면 토글 기능 */
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      if (wrapperEl.requestFullscreen) { wrapperEl.requestFullscreen(); }
+      else if (wrapperEl.webkitRequestFullscreen) { wrapperEl.webkitRequestFullscreen(); }
+      fullscreenIcon.innerHTML = ICON_MINIMIZE; // 축소 모양 패스 반영
+    } else {
+      if (document.exitFullscreen) { document.exitFullscreen(); }
+      else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+      fullscreenIcon.innerHTML = ICON_FULLSCREEN; // 기본 확대 모양 패스 환원
+    }
+  }
+
+  // Esc 키를 누르거나 화면을 강제로 나갔을 때 상태 동기화 및 레이아웃 유지
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+      fullscreenIcon.innerHTML = ICON_FULLSCREEN;
+    }
+    setTimeout(calculateLayout, 100);
+  });
+
+  /* 키보드 좌우 화살표 키 입력 바인딩 */
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') {
+      changePage(-1);
+    } else if (e.key === 'ArrowRight') {
+      changePage(1);
+    }
+  });
+
+  window.addEventListener("resize", () => setTimeout(calculateLayout, 200));
+  window.onload = buildBook;
+</script>
