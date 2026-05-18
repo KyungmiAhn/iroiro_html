@@ -5,7 +5,10 @@
 
 사실 비슷한 걸 만든 사람이 있어서 그거 보고 이거 써야지! 하고 써보려니까 막상 원하는 기능 없고 느낌 아니고 그래서 그냥 제가 바이브코딩했어요.
 
-link:https://jjamtong-share.blogspot.com/2026/05/gogh.html[체험해보기] (gogh: Focus with Your Avatar 공식 만화 한국어 번역)
+link:https://jjamtong-share.blogspot.com/2026/05/e.html[혼용 뷰어 체험해보기] (현재 올린 html 파일 그대로)
+link:https://jjamtong-share.blogspot.com/2026/05/gogh.html[만화 뷰어 체험해보기] (gogh: Focus with Your Avatar 공식 만화 한국어 번역)
+
+텍스트 뷰어 체험해보기는 따로 없습니다. 그냥 혼용 뷰어에서 이미지만 없다고 생각하세요. 실제로도 그런식이니까.
 
 == 사용하실 분께
 ㅁ한자8(★) 검색해서 나오는 부분 수정해서 쓰시면 됩니다. 다른 부분도 수정하셔도 돼요, 되는데, 나로서는 거긴 좀 무서워…….
