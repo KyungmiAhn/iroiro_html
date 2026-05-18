@@ -12,4 +12,4 @@ link:https://jjamtong-share.blogspot.com/2026/05/gogh.html[체험해보기] (gog
 
 그리고 mixed 부분에 설명 다 적어 놨어요. 읽어보시면 됩니다. html 파일 다운로드해서 실행해서 읽으면 보기 좋겠네요.
 
-아 그리고 link:../readme.adoc[도보시오].
+아 그리고 link:../README.adoc[도보시오].
